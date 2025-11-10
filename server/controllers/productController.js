@@ -1,11 +1,13 @@
 const Product = require('../models/productModel');
 
-// @desc    Get all products
-// @route   GET /api/products
+// @desc    Get all products (with optional category filter)
+// @route   GET /api/products?category=Sofa
 // @access  Public
 const getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find({});
+        const { category } = req.query;
+        const filter = category ? { category } : {};
+        const products = await Product.find(filter).sort({ createdAt: -1 });
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch products', error });
@@ -17,8 +19,15 @@ const getAllProducts = async (req, res) => {
 // @access  Private/Admin
 const createProduct = async (req, res) => {
     try {
-        const { name, description, price, image } = req.body;
-        const product = new Product({ name, description, price, image });
+        const { name, category, description, price, image, admin_id } = req.body;
+        const product = new Product({ 
+            name, 
+            category, 
+            description, 
+            price, 
+            image,
+            admin_id
+        });
         const createdProduct = await product.save();
         res.status(201).json(createdProduct);
     } catch (error) {
@@ -32,14 +41,15 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, image } = req.body;
+        const { name, category, description, price, image } = req.body;
         const product = await Product.findById(id);
 
         if (product) {
-            product.name = name;
-            product.description = description;
-            product.price = price;
-            product.image = image;
+            product.name = name || product.name;
+            product.category = category || product.category;
+            product.description = description || product.description;
+            product.price = price || product.price;
+            product.image = image || product.image;
             const updatedProduct = await product.save();
             res.status(200).json(updatedProduct);
         } else {
@@ -67,9 +77,18 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+// @desc    Get product categories
+// @route   GET /api/products/categories
+// @access  Public
+const getCategories = async (req, res) => {
+    const categories = ['Sofa', 'Bed', 'Table', 'Dining Table', 'TV', 'Refrigerator', 'Washing Machine', 'Water Purifier', 'Mattress', 'Other'];
+    res.status(200).json(categories);
+};
+
 module.exports = {
     getAllProducts,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getCategories
 };

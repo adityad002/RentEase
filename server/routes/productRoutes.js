@@ -4,10 +4,12 @@ const {
     getAllProducts,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    getCategories
 } = require('../controllers/productController');
 
 // Define routes
+router.get('/categories', getCategories);
 router.get('/', getAllProducts);
 router.post('/', createProduct);
 router.put('/:id', updateProduct);
